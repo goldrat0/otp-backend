@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OTP Verification Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg: #0a0a0f;
+–surface: #12121a;
+–border: #1e1e2e;
+–accent: #00ff88;
+–danger: #ff3b5c;
+–text: #e8e8f0;
+–muted: #5a5a7a;
+–pending: #f5a623;
+}
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: ‘Syne’, sans-serif;
+min-height: 100vh;
+padding: 32px 24px;
+}
+
+/* Animated background grid */
+body::before {
+content: ‘’;
+position: fixed;
+inset: 0;
+background-image:
+linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+background-size: 40px 40px;
+pointer-events: none;
+z-index: 0;
+}
+
+.container {
+max-width: 780px;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+
+header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 48px;
+}
+
+.logo {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.logo-dot {
+width: 10px;
+height: 10px;
+border-radius: 50%;
+background: var(–accent);
+box-shadow: 0 0 12px var(–accent);
+animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+0%, 100% { opacity: 1; transform: scale(1); }
+50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+h1 {
+font-size: 20px;
+font-weight: 800;
+letter-spacing: -0.5px;
+color: var(–text);
+}
+
+.status-bar {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+color: var(–muted);
+background: var(–surface);
+border: 1px solid var(–border);
+padding: 6px 14px;
+border-radius: 100px;
+}
+
+.status-bar span {
+color: var(–accent);
+}
+
+/* Empty state */
+.empty {
+text-align: center;
+padding: 80px 0;
+color: var(–muted);
+}
+
+.empty-icon {
+font-size: 48px;
+margin-bottom: 16px;
+opacity: 0.4;
+}
+
+.empty p {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 13px;
+}
+
+/* OTP Cards */
+.cards {
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+
+.card {
+background: var(–surface);
+border: 1px solid var(–border);
+border-radius: 16px;
+padding: 28px;
+animation: slideIn 0.3s ease;
+position: relative;
+overflow: hidden;
+}
+
+.card::before {
+content: ‘’;
+position: absolute;
+top: 0; left: 0; right: 0;
+height: 2px;
+background: linear-gradient(90deg, var(–accent), transparent);
+}
+
+.card.confirmed::before { background: linear-gradient(90deg, var(–accent), transparent); }
+.card.rejected::before { background: linear-gradient(90deg, var(–danger), transparent); }
+
+@keyframes slideIn {
+from { opacity: 0; transform: translateY(-12px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+.card-top {
+display: flex;
+align-items: flex-start;
+justify-content: space-between;
+margin-bottom: 24px;
+}
+
+.session-id {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 11px;
+color: var(–muted);
+margin-bottom: 4px;
+}
+
+.badge {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+font-weight: 700;
+padding: 4px 10px;
+border-radius: 100px;
+text-transform: uppercase;
+letter-spacing: 1px;
+}
+
+.badge.pending { background: rgba(245,166,35,0.15); color: var(–pending); border: 1px solid rgba(245,166,35,0.3); }
+.badge.confirmed { background: rgba(0,255,136,0.15); color: var(–accent); border: 1px solid rgba(0,255,136,0.3); }
+.badge.rejected { background: rgba(255,59,92,0.15); color: var(–danger); border: 1px solid rgba(255,59,92,0.3); }
+
+.otp-display {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 42px;
+font-weight: 700;
+letter-spacing: 12px;
+color: var(–text);
+margin-bottom: 8px;
+text-shadow: 0 0 30px rgba(232,232,240,0.2);
+}
+
+.otp-label {
+font-size: 12px;
+color: var(–muted);
+text-transform: uppercase;
+letter-spacing: 2px;
+margin-bottom: 28px;
+}
+
+.actions {
+display: flex;
+gap: 12px;
+}
+
+button {
+flex: 1;
+padding: 14px;
+border: none;
+border-radius: 10px;
+font-family: ‘Syne’, sans-serif;
+font-size: 14px;
+font-weight: 700;
+cursor: pointer;
+transition: all 0.15s ease;
+letter-spacing: 0.5px;
+}
+
+.btn-confirm {
+background: var(–accent);
+color: #000;
+}
+
+.btn-confirm:hover {
+background: #00ffaa;
+transform: translateY(-1px);
+box-shadow: 0 4px 20px rgba(0,255,136,0.3);
+}
+
+.btn-reject {
+background: transparent;
+color: var(–danger);
+border: 1px solid rgba(255,59,92,0.4);
+}
+
+.btn-reject:hover {
+background: rgba(255,59,92,0.1);
+border-color: var(–danger);
+transform: translateY(-1px);
+}
+
+button:disabled {
+opacity: 0.4;
+cursor: not-allowed;
+transform: none !important;
+box-shadow: none !important;
+}
+
+.timestamp {
+font-family: ‘JetBrains Mono’, monospace;
+font-size: 10px;
+color: var(–muted);
+margin-top: 16px;
+}
+
+.section-label {
+font-size: 11px;
+text-transform: uppercase;
+letter-spacing: 3px;
+color: var(–muted);
+margin-bottom: 16px;
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">
+      <div class="logo-dot"></div>
+      <h1>OTP Verification</h1>
+    </div>
+    <div class="status-bar">LIVE <span id="count">0</span> pending</div>
+  </header>
+
+  <p class="section-label">Incoming Verifications</p>
+  <div id="cards" class="cards">
+    <div class="empty">
+      <div class="empty-icon">📡</div>
+      <p>Waiting for client OTP submissions...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Change this to your backend URL when deployed
+  const BASE_URL = window.location.origin;
+
+  let lastSeen = {};
+
+  async function fetchPending() {
+    try {
+      const res = await fetch(`${BASE_URL}/pending`);
+      const data = await res.json();
+      render(data);
+    } catch (e) {
+      console.error('Failed to fetch:', e);
+    }
+  }
+
+  function render(data) {
+    const container = document.getElementById('cards');
+    const entries = Object.entries(data);
+    const pending = entries.filter(([,v]) => v.status === 'pending');
+
+    document.getElementById('count').textContent = pending.length;
+
+    if (entries.length === 0) {
+      container.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">📡</div>
+          <p>Waiting for client OTP submissions...</p>
+        </div>`;
+      return;
+    }
+
+    // Sort: pending first, then by timestamp desc
+    entries.sort((a, b) => {
+      if (a[1].status === 'pending' && b[1].status !== 'pending') return -1;
+      if (b[1].status === 'pending' && a[1].status !== 'pending') return 1;
+      return b[1].timestamp - a[1].timestamp;
+    });
+
+    container.innerHTML = entries.map(([sessionId, entry]) => {
+      const time = new Date(entry.timestamp).toLocaleTimeString();
+      const isPending = entry.status === 'pending';
+      return `
+        <div class="card ${entry.status}">
+          <div class="card-top">
+            <div>
+              <div class="session-id">Session: ${sessionId}</div>
+            </div>
+            <div class="badge ${entry.status}">${entry.status}</div>
+          </div>
+          <div class="otp-display">${entry.otp}</div>
+          <div class="otp-label">Code spoken by client</div>
+          <div class="actions">
+            <button class="btn-confirm" onclick="decide('${sessionId}', 'confirmed')" ${!isPending ? 'disabled' : ''}>
+              ✓ Confirm
+            </button>
+            <button class="btn-reject" onclick="decide('${sessionId}', 'rejected')" ${!isPending ? 'disabled' : ''}>
+              ✕ Reject
+            </button>
+          </div>
+          <div class="timestamp">Received at ${time}</div>
+        </div>`;
+    }).join('');
+  }
+
+  async function decide(sessionId, decision) {
+    await fetch(`${BASE_URL}/decide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, decision })
+    });
+    fetchPending();
+  }
+
+  // Poll every 2 seconds
+  fetchPending();
+  setInterval(fetchPending, 2000);
+</script>
+
+</body>
+</html>
