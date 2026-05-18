@@ -50,7 +50,13 @@ app.get('/pending', (req, res) => {
   res.json(pending);
 });
 
-app.get('/status/:session_id', (req, res) => {
+app.get('/status/:session_id', (req, res) => {app.post('/check-otp-status', (req, res) => {
+  const { session_id } = req.body;
+  const entry = pending[session_id];
+  if (!entry) return res.json({ status: 'not_found' });
+  res.json({ verification_status: entry.status });
+});
+
   const entry = pending[req.params.session_id];
   if (!entry) return res.json({ status: 'not_found' });
   res.json({ status: entry.status, otp: entry.otp });
