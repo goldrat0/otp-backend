@@ -50,16 +50,17 @@ app.get('/pending', (req, res) => {
   res.json(pending);
 });
 
-app.get('/status/:session_id', (req, res) => {app.post('/check-otp-status', (req, res) => {
-  const { session_id } = req.body;
-  const entry = pending[session_id];
-  if (!entry) return res.json({ status: 'not_found' });
-  res.json({ verification_status: entry.status });
+app.get('/status/:session_id', (req, res) => {
+  const entry = pending[req.params.session_id];
+  if (!entry) return res.json({ verification_status: 'not_found' });
+  res.json({ verification_status: entry.status, otp: entry.otp });
 });
 
-  const entry = pending[req.params.session_id];
-  if (!entry) return res.json({ status: 'not_found' });
-  res.json({ status: entry.status, otp: entry.otp });
+app.post('/check-otp-status', (req, res) => {
+  const { session_id } = req.body;
+  const entry = pending[session_id];
+  if (!entry) return res.json({ verification_status: 'not_found' });
+  res.json({ verification_status: entry.status });
 });
 
 app.listen(3000, () => console.log('Server running on port 3000'));
