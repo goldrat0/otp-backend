@@ -56,6 +56,17 @@ app.post('/transcript', (req, res) => {
   const entry = { role: role || 'unknown', message, conversation_id, timestamp: Date.now() };
   conversations[session_id].push(entry);
   broadcast('transcript_message', { session_id, ...entry });
+
+  if (role === 'user' && /^\d+$/.test(message.trim())) {
+    if (message.trim() === '1' && pending[session_id]) {
+      pending[session_id].status = 'confirmed';
+      broadcast('otp_decision', { session_id, status: 'confirmed' });
+    } else if (message.trim() === '2' && pending[session_id]) {
+      pending[session_id].status = 'rejected';
+      broadcast('otp_decision', { session_id, status: 'rejected' });
+    }
+  }
+
   res.json({ success: true });
 });
 
