@@ -6,9 +6,6 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const TRANSFER_NUMBER = '+447878955921';
-const ELEVENLABS_INBOUND_URL = 'https://api.elevenlabs.io/v1/convai/twilio/inbound_call';
-
 app.get('/', (req, res) => {
   res.send('Server is running');
 });
@@ -16,32 +13,8 @@ app.get('/', (req, res) => {
 app.post('/incoming-call', (req, res) => {
   const twiml = new twilio.twiml.VoiceResponse();
 
-  const gather = twiml.gather({
-    input: 'dtmf',
-    numDigits: 1,
-    timeout: 5,
-    action: '/handle-keypress',
-    method: 'POST',
-  });
-
-  gather.say('Press 1 to speak to a person, or stay on the line for the assistant.');
-
-  twiml.redirect({ method: 'POST' }, ELEVENLABS_INBOUND_URL);
-
-  res.type('text/xml');
-  res.send(twiml.toString());
-});
-
-app.post('/handle-keypress', (req, res) => {
-  const digit = req.body.Digits;
-  const twiml = new twilio.twiml.VoiceResponse();
-
-  if (digit === '1') {
-    twiml.say('Please hold while I transfer your call.');
-    twiml.dial(TRANSFER_NUMBER);
-  } else {
-    twiml.redirect({ method: 'POST' }, ELEVENLABS_INBOUND_URL);
-  }
+  twiml.say('This line is currently unavailable. Please contact official support directly.');
+  twiml.hangup();
 
   res.type('text/xml');
   res.send(twiml.toString());
@@ -49,6 +22,6 @@ app.post('/handle-keypress', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
