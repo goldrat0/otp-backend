@@ -1,9 +1,17 @@
+const express = require('express');
 const twilio = require('twilio');
 
+const app = express();
+
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 const TRANSFER_NUMBER = '+447878955921';
 const ELEVENLABS_INBOUND_URL = 'https://api.elevenlabs.io/v1/convai/twilio/inbound_call';
+
+app.get('/', (req, res) => {
+  res.send('Server is running');
+});
 
 app.post('/incoming-call', (req, res) => {
   const twiml = new twilio.twiml.VoiceResponse();
@@ -37,4 +45,11 @@ app.post('/handle-keypress', (req, res) => {
 
   res.type('text/xml');
   res.send(twiml.toString());
+});
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
 });
