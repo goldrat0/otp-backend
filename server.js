@@ -6,7 +6,6 @@ const app = express();
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
-const BASE_URL = 'https://otp-backend-production-15fa.up.railway.app';
 const TRANSFER_NUMBER = '+447878955921';
 const ELEVENLABS_INBOUND_URL = 'https://api.elevenlabs.io/v1/convai/twilio/inbound_call';
 
@@ -23,7 +22,7 @@ app.post('/incoming-call', (req, res) => {
     input: 'dtmf',
     numDigits: 1,
     timeout: 10,
-    action: `${BASE_URL}/handle-keypress`,
+    action: '/handle-keypress',
     method: 'POST',
   });
 
@@ -38,10 +37,9 @@ app.post('/incoming-call', (req, res) => {
 app.post('/handle-keypress', (req, res) => {
   console.log('Keypress received:', req.body.Digits, 'CallSid:', req.body.CallSid);
 
-  const digit = req.body.Digits;
   const twiml = new twilio.twiml.VoiceResponse();
 
-  if (digit === '1') {
+  if (req.body.Digits === '1') {
     console.log('Transferring call to:', TRANSFER_NUMBER);
     twiml.say('Please hold while I transfer your call.');
     twiml.dial(TRANSFER_NUMBER);
